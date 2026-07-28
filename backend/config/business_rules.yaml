@@ -1,0 +1,194 @@
+# =============================================================================
+# VisionOps AI — Warehouse Business Rules Configuration
+# =============================================================================
+# This file defines all business logic rules, thresholds, and alert
+# configurations for the VisionOps AI warehouse monitoring platform.
+#
+# These rules govern worker safety, equipment operations, congestion
+# detection, analytics intervals, and KPI target values.
+# =============================================================================
+
+# ---------------------------------------------------------------------------
+# Worker Safety Rules
+# ---------------------------------------------------------------------------
+worker_safety:
+  # Maximum time (seconds) a worker can remain in a restricted zone before alert
+  restricted_zone_time: 5
+  # Enable alert when worker is detected without a safety helmet
+  missing_helmet_alert: true
+  # Enable alert when worker is detected without a safety vest
+  missing_vest_alert: true
+  # Minimum confidence to trigger a safety alert
+  alert_confidence: 0.6
+  # Enable safety zone violation detection
+  zone_violation_detection: true
+  # List of restricted zone types
+  restricted_zones:
+    - "forklift_aisle"
+    - "loading_dock_operational"
+    - "heavy_machinery_area"
+  # Worker density limit per zone before warning
+  max_workers_per_zone: 5
+
+# ---------------------------------------------------------------------------
+# Forklift Operation Rules
+# ---------------------------------------------------------------------------
+forklift:
+  # Speed threshold (km/h) — exceeding triggers overspeed alert
+  overspeed_threshold: 15.0
+  # Idle time threshold (seconds) — exceeding triggers idle alert
+  idle_threshold: 300
+  # Maximum speed in pedestrian zones (km/h)
+  pedestrian_zone_speed_limit: 5.0
+  # Minimum distance to maintain from workers (meters)
+  worker_safe_distance: 3.0
+  # Enable proximity alert between forklifts and workers
+  proximity_alert_enabled: true
+  # Maximum number of forklifts allowed in same zone
+  max_forklifts_per_zone: 3
+  # Automatic slowdown zone detection
+  slowdown_zones_enabled: true
+
+# ---------------------------------------------------------------------------
+# Truck Loading/Unloading Rules
+# ---------------------------------------------------------------------------
+truck:
+  # Maximum allowed time (seconds) for loading operations
+  loading_timeout: 600
+  # Maximum allowed time (seconds) for unloading operations
+  unloading_timeout: 480
+  # Maximum time (seconds) a truck can wait in queue before alert
+  queue_timeout: 900
+  # Maximum allowed dwell time (seconds) at dock
+  dock_dwell_timeout: 1200
+  # Enable trailer detection verification
+  trailer_verification: true
+  # Alert when truck exceeds dock time limits
+  dock_timeout_alert: true
+
+# ---------------------------------------------------------------------------
+# Congestion Detection Rules
+# ---------------------------------------------------------------------------
+congestion:
+  # Number of objects per zone to trigger congestion alert
+  congestion_threshold: 10
+  # Time window (seconds) to evaluate congestion level
+  evaluation_window: 60
+  # Congestion levels based on object count relative to threshold
+  levels:
+    low: 0.5          # 50% of threshold — minimal congestion
+    moderate: 0.75    # 75% of threshold — moderate congestion
+    high: 1.0         # 100% of threshold — high congestion
+    critical: 1.5     # 150% of threshold — critical congestion
+  # Enable dynamic congestion routing suggestions
+  dynamic_routing: true
+
+# ---------------------------------------------------------------------------
+# Alert Configuration
+# ---------------------------------------------------------------------------
+alerts:
+  # Alert severity levels and their notification rules
+  critical:
+    enabled: true
+    # Require acknowledgment from supervisor
+    require_acknowledgment: true
+    # Notify immediately via all channels
+    notification_channels:
+      - "dashboard"
+      - "log"
+    # Color code for critical alerts
+    color: [255, 0, 0]           # Red
+
+  warning:
+    enabled: true
+    require_acknowledgment: false
+    notification_channels:
+      - "dashboard"
+      - "log"
+    color: [255, 165, 0]         # Orange
+
+  info:
+    enabled: true
+    require_acknowledgment: false
+    notification_channels:
+      - "dashboard"
+    color: [0, 0, 255]           # Blue
+
+  # Alert suppression rules
+  suppression:
+    # Minimum time (seconds) between repeated alerts of the same type
+    min_interval: 30
+    # Maximum number of alerts per hour per source
+    max_per_hour: 100
+    # Enable alert deduplication
+    deduplication: true
+
+# ---------------------------------------------------------------------------
+# Analytics Scheduling
+# ---------------------------------------------------------------------------
+analytics:
+  # Enable scheduled analytics processing
+  enabled: true
+  # Report generation schedule
+  hourly_report: true
+  daily_report: true
+  weekly_report: true
+  # Data retention period (days)
+  data_retention_days: 90
+  # Enable trend analysis on historical data
+  trend_analysis: true
+  # Enable anomaly detection in analytics
+  anomaly_detection: true
+
+# ---------------------------------------------------------------------------
+# Key Performance Indicator (KPI) Targets
+# ---------------------------------------------------------------------------
+kpis:
+  # Loading efficiency target (percentage)
+  loading_efficiency:
+    target: 95.0
+    unit: "%"
+    higher_is_better: true
+    warning_threshold: 85.0
+    critical_threshold: 75.0
+
+  # Unloading efficiency target (percentage)
+  unloading_efficiency:
+    target: 95.0
+    unit: "%"
+    higher_is_better: true
+    warning_threshold: 85.0
+    critical_threshold: 75.0
+
+  # Worker productivity target (tasks per hour)
+  worker_productivity:
+    target: 85.0
+    unit: "%"
+    higher_is_better: true
+    warning_threshold: 70.0
+    critical_threshold: 60.0
+
+  # Forklift utilization target (percentage)
+  forklift_utilization:
+    target: 75.0
+    unit: "%"
+    higher_is_better: true
+    warning_threshold: 60.0
+    critical_threshold: 45.0
+
+  # Truck turnaround time target (minutes)
+  truck_turnaround_time:
+    target: 15.0
+    unit: "minutes"
+    higher_is_better: false
+    warning_threshold: 20.0
+    critical_threshold: 30.0
+
+  # Dock occupancy rate target (percentage)
+  dock_occupancy_rate:
+    target: 80.0
+    unit: "%"
+    higher_is_better: true
+    warning_threshold: 90.0
+    critical_threshold: 95.0
+

@@ -1,0 +1,126 @@
+# =============================================================================
+# VisionOps AI — Application Settings
+# =============================================================================
+# This file defines the core application configuration for the VisionOps AI
+# warehouse monitoring and business intelligence platform.
+#
+# All paths are relative to the project root directory.
+# =============================================================================
+
+# ---------------------------------------------------------------------------
+# Project Information
+# ---------------------------------------------------------------------------
+project:
+  name: "VisionOps AI"
+  version: "1.0.0"
+  description: "AI-Powered Warehouse Operations & Business Intelligence Platform"
+
+# ---------------------------------------------------------------------------
+# Environment Configuration
+# ---------------------------------------------------------------------------
+environment:
+  # Runtime environment: development, staging, production, testing
+  current: "development"
+  debug: true
+
+# ---------------------------------------------------------------------------
+# API Server Configuration
+# ---------------------------------------------------------------------------
+server:
+  host: "0.0.0.0"
+  port: 8000
+
+api:
+  # Base URL prefix for all API routes
+  prefix: "/api/v1"
+
+# ---------------------------------------------------------------------------
+# Security & Authentication
+# ---------------------------------------------------------------------------
+security:
+  # Secret key for JWT signing — MUST be changed in production
+  secret_key: "change-me-to-a-secure-random-secret-key-in-production"
+  jwt:
+    algorithm: "HS256"
+    access_token_expire_minutes: 30
+  password:
+    hashing_scheme: "bcrypt"
+    min_length: 8
+
+# ---------------------------------------------------------------------------
+# CORS (Cross-Origin Resource Sharing)
+# ---------------------------------------------------------------------------
+cors:
+  allowed_origins:
+    - "http://localhost:3000"
+    - "http://localhost:5173"
+    - "http://127.0.0.1:3000"
+  allowed_methods:
+    - "*"
+  allowed_headers:
+    - "*"
+
+# ---------------------------------------------------------------------------
+# Upload Configuration
+# ---------------------------------------------------------------------------
+uploads:
+  upload_directory: "uploads/videos"
+  thumbnail_directory: "uploads/thumbnails"
+  max_upload_size: 524288000  # 500 MB in bytes
+  allowed_video_extensions:
+    - ".mp4"
+    - ".avi"
+    - ".mov"
+    - ".mkv"
+    - ".webm"
+    - ".flv"
+    - ".wmv"
+
+# ---------------------------------------------------------------------------
+# Data Storage Paths
+# ---------------------------------------------------------------------------
+storage:
+  data_directory: "data"
+  raw_directory: "data/raw"
+  processed_directory: "data/processed"
+  analytics_directory: "data/analytics"
+  archive_directory: "data/archive"
+
+  # CSV data file locations
+  csv:
+    videos: "data/videos.csv"
+    detections: "data/detections.csv"
+    events: "data/events.csv"
+    alerts: "data/alerts.csv"
+    kpis: "data/kpis.csv"
+    analytics: "data/analytics.csv"
+
+  # JSON data file locations
+  json:
+    summary: "data/summary.json"
+
+  # Output directories for processed media
+  outputs:
+    annotated_videos: "outputs/annotated_videos"
+    extracted_frames: "outputs/extracted_frames"
+    detection_images: "outputs/detection_images"
+    previews: "outputs/previews"
+
+# ---------------------------------------------------------------------------
+# Reports Configuration
+# ---------------------------------------------------------------------------
+reports:
+  reports_directory: "reports"
+  output:
+    pdf: "reports/pdf"
+    excel: "reports/excel"
+    json: "reports/json"
+
+# ---------------------------------------------------------------------------
+# Background Workers
+# ---------------------------------------------------------------------------
+workers:
+  enable_workers: true
+  cleanup_interval: 3600        # 1 hour in seconds
+  analytics_interval: 600        # 10 minutes in seconds
+

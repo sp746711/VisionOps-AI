@@ -1,0 +1,190 @@
+# =============================================================================
+# VisionOps AI — AI/ML Configuration
+# =============================================================================
+# This file defines the configuration for YOLOv11 object detection, ByteTrack
+# multi-object tracking, video processing, and all AI inference parameters
+# used by the VisionOps AI warehouse monitoring platform.
+# =============================================================================
+
+# ---------------------------------------------------------------------------
+# YOLOv11 Object Detection
+# ---------------------------------------------------------------------------
+yolo:
+  # Path to the YOLO model weights file (relative to project root)
+  model_path: "ai/models/detection/yolov8n.pt"
+  # Path to the class names file (one class name per line)
+  classes_file: "ai/models/config/classes.txt"
+  # Confidence threshold for detections (0.0 - 1.0)
+  confidence_threshold: 0.5
+  # IoU threshold for Non-Maximum Suppression (0.0 - 1.0)
+  iou_threshold: 0.45
+  # Maximum number of detections per inference frame
+  max_detections: 300
+
+# ---------------------------------------------------------------------------
+# Inference Engine
+# ---------------------------------------------------------------------------
+inference:
+  # Device for inference: cpu, cuda, mps, or auto
+  device: "auto"
+  # Enable half-precision (FP16) inference for GPU acceleration
+  half_precision: false
+  # Input image size for the YOLO model (pixels)
+  image_size: 640
+  # Batch size for inference when processing multiple images
+  batch_size: 8
+  # Number of worker threads for data loading
+  num_workers: 2
+  # Enable model warmup on initialization
+  warmup: true
+
+# ---------------------------------------------------------------------------
+# Video Processing
+# ---------------------------------------------------------------------------
+video:
+  # Number of frames to skip between processed frames (0 = process every frame)
+  frame_skip: 2
+  # Maximum video duration to process in seconds (0 = no limit)
+  max_video_duration: 600
+  # List of supported video formats for processing
+  supported_formats:
+    - ".mp4"
+    - ".avi"
+    - ".mov"
+    - ".mkv"
+    - ".webm"
+    - ".flv"
+    - ".wmv"
+  # Frame extraction settings
+  extraction:
+    # Target FPS for frame extraction (0 = use original video FPS)
+    target_fps: 10
+    # Maximum number of frames to extract per video
+    max_frames: 5000
+    # Quality setting for extracted frames (1-100)
+    quality: 90
+
+# ---------------------------------------------------------------------------
+# ByteTrack Multi-Object Tracker
+# ---------------------------------------------------------------------------
+bytetrack:
+  # Enable or disable ByteTrack object tracking
+  enabled: true
+  # Track buffer size in frames — number of frames to keep a track alive
+  track_buffer: 30
+  # Matching threshold for track association (0.0 - 1.0)
+  match_threshold: 0.8
+  # Number of frames to keep a lost track before removing it
+  lost_track_buffer: 60
+  # Minimum bounding box area to consider for tracking (pixels^2)
+  minimum_box_area: 100
+  # Minimum confidence for a detection to be considered for tracking
+  track_confidence: 0.4
+  # Frame skip for tracking (higher = faster but less accurate)
+  tracking_frame_skip: 1
+
+# ---------------------------------------------------------------------------
+# Detection Validator
+# ---------------------------------------------------------------------------
+validation:
+  # Minimum detection confidence for a valid detection
+  min_confidence: 0.35
+  # Minimum bounding box width in pixels
+  min_box_width: 10
+  # Minimum bounding box height in pixels
+  min_box_height: 10
+  # Maximum aspect ratio (width/height) for valid detections
+  max_aspect_ratio: 5.0
+  # Enable temporal validation (require detection in consecutive frames)
+  temporal_validation: true
+  # Number of consecutive frames required for temporal validation
+  temporal_frames: 3
+
+# ---------------------------------------------------------------------------
+# Object Classifier
+# ---------------------------------------------------------------------------
+classifier:
+  # Enable object sub-classification
+  enabled: true
+  # Confidence threshold for classification results
+  confidence_threshold: 0.6
+  # Enable re-identification across video segments
+  reid_enabled: false
+
+# ---------------------------------------------------------------------------
+# Warehouse Object Detection Classes
+# ---------------------------------------------------------------------------
+detection:
+  # Complete list of warehouse objects that the system detects and tracks
+  warehouse_objects:
+    - id: 0
+      name: "person"
+      label: "Person"
+      color: [255, 0, 0]        # Red
+      trackable: true
+      kpi_relevant: true
+
+    - id: 1
+      name: "forklift"
+      label: "Forklift"
+      color: [0, 255, 0]        # Green
+      trackable: true
+      kpi_relevant: true
+
+    - id: 2
+      name: "truck"
+      label: "Truck"
+      color: [0, 0, 255]        # Blue
+      trackable: true
+      kpi_relevant: true
+
+    - id: 3
+      name: "pallet"
+      label: "Pallet"
+      color: [255, 255, 0]      # Yellow
+      trackable: false
+      kpi_relevant: true
+
+    - id: 4
+      name: "box"
+      label: "Box"
+      color: [255, 0, 255]      # Magenta
+      trackable: false
+      kpi_relevant: false
+
+    - id: 5
+      name: "container"
+      label: "Container"
+      color: [0, 255, 255]      # Cyan
+      trackable: false
+      kpi_relevant: true
+
+    - id: 6
+      name: "helmet"
+      label: "Helmet"
+      color: [128, 0, 128]      # Purple
+      trackable: false
+      kpi_relevant: false
+
+    - id: 7
+      name: "safety_vest"
+      label: "Safety Vest"
+      color: [255, 165, 0]      # Orange
+      trackable: false
+      kpi_relevant: false
+
+  # Zone definitions for warehouse regions
+  zones:
+    loading_dock:
+      label: "Loading Dock"
+      color: [0, 255, 255]      # Cyan
+    storage_aisle:
+      label: "Storage Aisle"
+      color: [255, 255, 0]      # Yellow
+    restricted_area:
+      label: "Restricted Area"
+      color: [255, 0, 0]        # Red
+    pedestrian_zone:
+      label: "Pedestrian Zone"
+      color: [0, 255, 0]        # Green
+

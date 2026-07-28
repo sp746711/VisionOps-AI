@@ -1,0 +1,415 @@
+# =============================================================================
+# VisionOps AI — Power BI Integration Configuration
+# =============================================================================
+# This file defines the configuration for Power BI dataset generation,
+# CSV data mapping, report scheduling, and export settings for the
+# VisionOps AI warehouse monitoring platform.
+# =============================================================================
+
+# ---------------------------------------------------------------------------
+# Dashboard Configuration
+# ---------------------------------------------------------------------------
+dashboard:
+  # Enable or disable Power BI dashboard generation
+  enabled: true
+  # Dashboard title displayed in Power BI reports
+  title: "VisionOps AI — Warehouse Operations Dashboard"
+  # Dashboard description
+  description: "Real-time warehouse analytics, KPIs, and operational insights powered by VisionOps AI"
+  # Dashboard version for tracking changes
+  version: "1.0.0"
+  # Enable auto-publish to Power BI service
+  auto_publish: false
+  # Power BI workspace ID (set when auto_publish is true)
+  workspace_id: ""
+  # Power BI dataset ID (set when auto_publish is true)
+  dataset_id: ""
+
+# ---------------------------------------------------------------------------
+# Dataset Paths
+# ---------------------------------------------------------------------------
+dataset:
+  # Root directory for Power BI dataset files (relative to project root)
+  base_directory: "data/analytics"
+  # Directory for exported dataset CSV files
+  output_directory: "data/analytics/powerbi"
+  # Directory for temporary files during dataset generation
+  temp_directory: "data/analytics/powerbi/temp"
+
+  # Individual dataset file paths (relative to project root)
+  files:
+    detections: "data/analytics/powerbi/detections_summary.csv"
+    hourly_activity: "data/analytics/powerbi/hourly_activity.csv"
+    worker_safety: "data/analytics/powerbi/worker_safety.csv"
+    forklift_performance: "data/analytics/powerbi/forklift_performance.csv"
+    truck_operations: "data/analytics/powerbi/truck_operations.csv"
+    kpi_trends: "data/analytics/powerbi/kpi_trends.csv"
+    congestion_analysis: "data/analytics/powerbi/congestion_analysis.csv"
+    zone_occupancy: "data/analytics/powerbi/zone_occupancy.csv"
+    daily_summary: "data/analytics/powerbi/daily_summary.csv"
+    weekly_summary: "data/analytics/powerbi/weekly_summary.csv"
+
+# ---------------------------------------------------------------------------
+# CSV Mapping — Maps source data to Power BI dataset columns
+# ---------------------------------------------------------------------------
+csv_mapping:
+
+  # Detections summary mapping
+  detections_summary:
+    source: "data/detections.csv"
+    columns:
+      - "timestamp"
+      - "object_class"
+      - "confidence"
+      - "bounding_box"
+      - "zone"
+      - "track_id"
+      - "video_id"
+    data_types:
+      timestamp: "datetime"
+      object_class: "string"
+      confidence: "float"
+      bounding_box: "string"
+      zone: "string"
+      track_id: "integer"
+      video_id: "string"
+
+  # Events mapping
+  events:
+    source: "data/events.csv"
+    columns:
+      - "timestamp"
+      - "event_type"
+      - "object_class"
+      - "track_id"
+      - "zone"
+      - "duration"
+      - "severity"
+      - "video_id"
+    data_types:
+      timestamp: "datetime"
+      event_type: "string"
+      object_class: "string"
+      track_id: "integer"
+      zone: "string"
+      duration: "float"
+      severity: "string"
+      video_id: "string"
+
+  # Alerts mapping
+  alerts:
+    source: "data/alerts.csv"
+    columns:
+      - "timestamp"
+      - "alert_type"
+      - "severity"
+      - "message"
+      - "object_class"
+      - "zone"
+      - "acknowledged"
+      - "resolved_at"
+    data_types:
+      timestamp: "datetime"
+      alert_type: "string"
+      severity: "string"
+      message: "string"
+      object_class: "string"
+      zone: "string"
+      acknowledged: "boolean"
+      resolved_at: "datetime"
+
+  # KPIs mapping
+  kpis:
+    source: "data/kpis.csv"
+    columns:
+      - "timestamp"
+      - "kpi_name"
+      - "kpi_value"
+      - "kpi_target"
+      - "kpi_unit"
+      - "deviation"
+      - "status"
+    data_types:
+      timestamp: "datetime"
+      kpi_name: "string"
+      kpi_value: "float"
+      kpi_target: "float"
+      kpi_unit: "string"
+      deviation: "float"
+      status: "string"
+
+  # Analytics summary mapping
+  analytics:
+    source: "data/analytics.csv"
+    columns:
+      - "timestamp"
+      - "metric_name"
+      - "metric_value"
+      - "dimension"
+      - "dimension_value"
+      - "period"
+    data_types:
+      timestamp: "datetime"
+      metric_name: "string"
+      metric_value: "float"
+      dimension: "string"
+      dimension_value: "string"
+      period: "string"
+
+# ---------------------------------------------------------------------------
+# Refresh Interval
+# ---------------------------------------------------------------------------
+refresh:
+  # Dataset refresh interval in seconds (300 = 5 minutes)
+  interval_seconds: 300
+  # Enable automatic refresh on a schedule
+  auto_refresh: true
+  # Refresh batch size — number of records to process per batch
+  batch_size: 1000
+  # Maximum retries for failed refresh operations
+  max_retries: 3
+  # Retry delay in seconds between retry attempts
+  retry_delay: 30
+
+# ---------------------------------------------------------------------------
+# Export Configuration
+# ---------------------------------------------------------------------------
+export:
+  # Enable CSV export for Power BI datasets
+  csv_enabled: true
+  # Enable JSON export for Power BI datasets
+  json_enabled: false
+  # Enable Parquet export for large datasets
+  parquet_enabled: false
+  # Output folder for exported files (relative to project root)
+  output_folder: "outputs/reports"
+  # Include header row in CSV exports
+  include_header: true
+  # Delimiter for CSV files
+  csv_delimiter: ","
+  # Quote character for CSV files
+  csv_quotechar: "\""
+  # Date format for timestamp columns
+  date_format: "%Y-%m-%d %H:%M:%S"
+  # Number of decimal places for float values
+  decimal_places: 2
+  # Enable data compression for export files
+  compression: false
+
+# ---------------------------------------------------------------------------
+# Analytics Tables — Power BI dataset table definitions
+# ---------------------------------------------------------------------------
+analytics_tables:
+
+  # Detections summary table
+  detections_summary:
+    table_name: "Detections Summary"
+    description: "Aggregated object detection counts by class and zone over time"
+    source_csv: "data/analytics/powerbi/detections_summary.csv"
+    refresh_priority: 1
+    aggregation: "count"
+    dimensions:
+      - "object_class"
+      - "zone"
+      - "hour"
+      - "date"
+
+  # Hourly activity table
+  hourly_activity:
+    table_name: "Hourly Activity"
+    description: "Hourly activity metrics for all warehouse operations"
+    source_csv: "data/analytics/powerbi/hourly_activity.csv"
+    refresh_priority: 1
+    aggregation: "sum"
+    dimensions:
+      - "activity_type"
+      - "hour"
+      - "date"
+      - "zone"
+
+  # Worker safety table
+  worker_safety:
+    table_name: "Worker Safety"
+    description: "Worker safety metrics including zone violations and PPE compliance"
+    source_csv: "data/analytics/powerbi/worker_safety.csv"
+    refresh_priority: 2
+    aggregation: "count"
+    dimensions:
+      - "violation_type"
+      - "zone"
+      - "date"
+      - "shift"
+
+  # Forklift performance table
+  forklift_performance:
+    table_name: "Forklift Performance"
+    description: "Forklift utilization, speed, and idle time metrics"
+    source_csv: "data/analytics/powerbi/forklift_performance.csv"
+    refresh_priority: 2
+    aggregation: "average"
+    dimensions:
+      - "forklift_id"
+      - "zone"
+      - "date"
+      - "shift"
+
+  # Truck operations table
+  truck_operations:
+    table_name: "Truck Operations"
+    description: "Truck loading/unloading times, queue times, and dock utilization"
+    source_csv: "data/analytics/powerbi/truck_operations.csv"
+    refresh_priority: 2
+    aggregation: "average"
+    dimensions:
+      - "operation_type"
+      - "dock_id"
+      - "date"
+      - "shift"
+
+  # KPI trends table
+  kpi_trends:
+    table_name: "KPI Trends"
+    description: "Daily, weekly, and monthly KPI trends with target comparisons"
+    source_csv: "data/analytics/powerbi/kpi_trends.csv"
+    refresh_priority: 3
+    aggregation: "last"
+    dimensions:
+      - "kpi_name"
+      - "period"
+      - "date"
+
+  # Congestion analysis table
+  congestion_analysis:
+    table_name: "Congestion Analysis"
+    description: "Zone congestion levels and traffic density metrics"
+    source_csv: "data/analytics/powerbi/congestion_analysis.csv"
+    refresh_priority: 2
+    aggregation: "average"
+    dimensions:
+      - "zone"
+      - "congestion_level"
+      - "date"
+      - "hour"
+
+  # Zone occupancy table
+  zone_occupancy:
+    table_name: "Zone Occupancy"
+    description: "Real-time and historical zone occupancy rates"
+    source_csv: "data/analytics/powerbi/zone_occupancy.csv"
+    refresh_priority: 1
+    aggregation: "average"
+    dimensions:
+      - "zone"
+      - "object_class"
+      - "date"
+      - "hour"
+
+  # Daily summary table
+  daily_summary:
+    table_name: "Daily Summary"
+    description: "Daily operational summary with key metrics and KPIs"
+    source_csv: "data/analytics/powerbi/daily_summary.csv"
+    refresh_priority: 3
+    aggregation: "sum"
+    dimensions:
+      - "metric_name"
+      - "date"
+
+  # Weekly summary table
+  weekly_summary:
+    table_name: "Weekly Summary"
+    description: "Weekly trend analysis and performance benchmarks"
+    source_csv: "data/analytics/powerbi/weekly_summary.csv"
+    refresh_priority: 4
+    aggregation: "average"
+    dimensions:
+      - "metric_name"
+      - "week"
+      - "year"
+
+# ---------------------------------------------------------------------------
+# Report Configuration
+# ---------------------------------------------------------------------------
+report:
+  # Enable automatic report generation
+  enabled: true
+  # Report title prefix
+  title_prefix: "VisionOps AI — "
+  # Report output format
+  format: "pbix"
+  # Include visualizations in generated reports
+  include_visualizations: true
+  # Maximum number of data points per visualization
+  max_data_points: 10000
+  # Default date range for reports (days)
+  default_date_range_days: 30
+
+  # Report pages to generate
+  pages:
+    overview:
+      title: "Operations Overview"
+      description: "High-level view of warehouse operations and KPIs"
+      position: 1
+    safety:
+      title: "Safety Metrics"
+      description: "Worker safety compliance and incident tracking"
+      position: 2
+    equipment:
+      title: "Equipment Utilization"
+      description: "Forklift and vehicle performance metrics"
+      position: 3
+    efficiency:
+      title: "Operational Efficiency"
+      description: "Loading, unloading, and turnaround efficiency"
+      position: 4
+    trends:
+      title: "Analytics & Trends"
+      description: "Historical trends and anomaly detection"
+      position: 5
+
+# ---------------------------------------------------------------------------
+# Auto Refresh Schedule
+# ---------------------------------------------------------------------------
+auto_refresh:
+  # Enable scheduled auto-refresh of Power BI datasets
+  enabled: true
+  # Refresh schedule using cron expression (default: every 5 minutes)
+  schedule: "*/5 * * * *"
+  # Timezone for schedule
+  timezone: "UTC"
+  # Notify on successful refresh
+  notify_success: false
+  # Notify on failed refresh
+  notify_failure: true
+
+# ---------------------------------------------------------------------------
+# Output Folder
+# ---------------------------------------------------------------------------
+output:
+  # Root folder for all Power BI export files
+  folder: "data/analytics/powerbi"
+  # Subfolder for archived reports
+  archive: "data/analytics/powerbi/archive"
+  # Subfolder for logs
+  logs: "data/analytics/powerbi/logs"
+  # Maximum number of export files to retain
+  max_export_files: 50
+  # Cleanup export files older than this many days
+  export_retention_days: 90
+
+# ---------------------------------------------------------------------------
+# Dashboard Generation
+# ---------------------------------------------------------------------------
+generation:
+  # Enable automatic dashboard generation from analytics data
+  enabled: true
+  # Generation interval in seconds (default: 300 = 5 minutes)
+  interval_seconds: 300
+  # Include all defined analytics tables in generated dashboard
+  include_all_tables: true
+  # Generate default visualizations for each table
+  generate_default_visuals: true
+  # Theme for generated dashboards
+  theme: "warehouse_dark"
+  # Company branding to include in dashboard headers
+  company_branding: "VisionOps AI"

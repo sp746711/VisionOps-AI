@@ -1,0 +1,289 @@
+# =============================================================================
+# VisionOps AI — Logging Configuration
+# =============================================================================
+# This file defines the complete logging configuration for all backend
+# components of the VisionOps AI warehouse monitoring platform.
+#
+# Uses Python's logging.config.dictConfig format with structured loggers,
+# rotating file handlers, and console output for development.
+# =============================================================================
+
+# ---------------------------------------------------------------------------
+# Logging Version
+# ---------------------------------------------------------------------------
+version: 1
+
+# ---------------------------------------------------------------------------
+# Disable existing loggers to avoid duplicate logs
+# ---------------------------------------------------------------------------
+disable_existing_loggers: false
+
+# ---------------------------------------------------------------------------
+# Formatters
+# ---------------------------------------------------------------------------
+formatters:
+
+  # Standard detailed formatter for production logging
+  standard:
+    format: "%(asctime)s | %(levelname)-8s | %(name)s | %(message)s"
+    datefmt: "%Y-%m-%d %H:%M:%S"
+
+  # Verbose formatter with file and line number for debugging
+  verbose:
+    format: "%(asctime)s | %(levelname)-8s | %(name)s | %(pathname)s:%(lineno)d | %(message)s"
+    datefmt: "%Y-%m-%d %H:%M:%S.%f"
+
+  # Concise formatter for console output
+  concise:
+    format: "[%(levelname)s] %(name)s: %(message)s"
+
+  # JSON formatter for structured logging (production)
+  json:
+    format: '{"timestamp": "%(asctime)s", "level": "%(levelname)s", "logger": "%(name)s", "module": "%(module)s", "function": "%(funcName)s", "line": %(lineno)d, "message": "%(message)s"}'
+    datefmt: "%Y-%m-%dT%H:%M:%S%z"
+
+  # Minimal formatter for access logs
+  access:
+    format: "%(asctime)s | %(levelname)s | %(message)s"
+    datefmt: "%Y-%m-%d %H:%M:%S"
+
+# ---------------------------------------------------------------------------
+# Handlers
+# ---------------------------------------------------------------------------
+handlers:
+
+  # Console handler — outputs to stdout
+  console:
+    class: "logging.StreamHandler"
+    level: "DEBUG"
+    formatter: "concise"
+    stream: "ext://sys.stdout"
+
+  # Standard application log file handler
+  app_file:
+    class: "logging.handlers.RotatingFileHandler"
+    level: "INFO"
+    formatter: "standard"
+    filename: "logs/visionops_app.log"
+    maxBytes: 10485760            # 10 MB
+    backupCount: 5
+    encoding: "utf-8"
+
+  # Error log file handler — captures ERROR and above
+  error_file:
+    class: "logging.handlers.RotatingFileHandler"
+    level: "ERROR"
+    formatter: "verbose"
+    filename: "logs/visionops_error.log"
+    maxBytes: 10485760            # 10 MB
+    backupCount: 10
+    encoding: "utf-8"
+
+  # AI inference log file handler
+  ai_file:
+    class: "logging.handlers.RotatingFileHandler"
+    level: "INFO"
+    formatter: "standard"
+    filename: "logs/visionops_ai.log"
+    maxBytes: 20971520            # 20 MB
+    backupCount: 5
+    encoding: "utf-8"
+
+  # API access log file handler
+  access_file:
+    class: "logging.handlers.RotatingFileHandler"
+    level: "INFO"
+    formatter: "access"
+    filename: "logs/visionops_access.log"
+    maxBytes: 10485760            # 10 MB
+    backupCount: 5
+    encoding: "utf-8"
+
+  # Analytics log file handler
+  analytics_file:
+    class: "logging.handlers.RotatingFileHandler"
+    level: "INFO"
+    formatter: "standard"
+    filename: "logs/visionops_analytics.log"
+    maxBytes: 10485760            # 10 MB
+    backupCount: 5
+    encoding: "utf-8"
+
+  # Worker log file handler
+  worker_file:
+    class: "logging.handlers.RotatingFileHandler"
+    level: "INFO"
+    formatter: "standard"
+    filename: "logs/visionops_worker.log"
+    maxBytes: 10485760            # 10 MB
+    backupCount: 5
+    encoding: "utf-8"
+
+  # Debug log file handler — captures all levels with verbose formatting
+  debug_file:
+    class: "logging.handlers.RotatingFileHandler"
+    level: "DEBUG"
+    formatter: "verbose"
+    filename: "logs/visionops_debug.log"
+    maxBytes: 52428800            # 50 MB
+    backupCount: 3
+    encoding: "utf-8"
+
+# ---------------------------------------------------------------------------
+# Loggers
+# ---------------------------------------------------------------------------
+loggers:
+
+  # Application logger — core application logic
+  visionops:
+    level: "INFO"
+    handlers:
+      - "app_file"
+      - "console"
+      - "error_file"
+    propagate: false
+    qualname: "visionops"
+
+  # AI inference logger — YOLO, ByteTrack, video processing
+  visionops.ai:
+    level: "INFO"
+    handlers:
+      - "ai_file"
+      - "console"
+      - "error_file"
+    propagate: false
+    qualname: "visionops.ai"
+
+  # API logger — HTTP request/response handling
+  visionops.api:
+    level: "INFO"
+    handlers:
+      - "access_file"
+      - "console"
+      - "error_file"
+    propagate: false
+    qualname: "visionops.api"
+
+  # Worker logger — background task execution
+  visionops.worker:
+    level: "INFO"
+    handlers:
+      - "worker_file"
+      - "error_file"
+    propagate: false
+    qualname: "visionops.worker"
+
+  # Analytics logger — data processing and report generation
+  visionops.analytics:
+    level: "INFO"
+    handlers:
+      - "analytics_file"
+      - "console"
+      - "error_file"
+    propagate: false
+    qualname: "visionops.analytics"
+
+  # Business rules logger — alert and KPI evaluation
+  visionops.business:
+    level: "INFO"
+    handlers:
+      - "app_file"
+      - "error_file"
+    propagate: false
+    qualname: "visionops.business"
+
+  # Storage logger — CSV, JSON, file operations
+  visionops.storage:
+    level: "INFO"
+    handlers:
+      - "app_file"
+      - "error_file"
+    propagate: false
+    qualname: "visionops.storage"
+
+# ---------------------------------------------------------------------------
+# Root Logger
+# ---------------------------------------------------------------------------
+root:
+  level: "INFO"
+  handlers:
+    - "console"
+    - "app_file"
+    - "error_file"
+  propagate: true
+
+# ---------------------------------------------------------------------------
+# Log Level Configuration
+# ---------------------------------------------------------------------------
+log_levels:
+  root: "INFO"
+  app: "INFO"
+  ai: "INFO"
+  api: "INFO"
+  worker: "INFO"
+  analytics: "INFO"
+  business: "INFO"
+  storage: "INFO"
+  # Development overrides — bumped to DEBUG in non-production environments
+  development:
+    root: "DEBUG"
+    app: "DEBUG"
+    ai: "DEBUG"
+    api: "DEBUG"
+    worker: "DEBUG"
+    analytics: "DEBUG"
+    business: "DEBUG"
+    storage: "DEBUG"
+
+# ---------------------------------------------------------------------------
+# Log File Configuration
+# ---------------------------------------------------------------------------
+log_files:
+  # Directory for all log files (relative to project root)
+  directory: "logs"
+
+  # Individual log file names
+  app: "visionops_app.log"
+  error: "visionops_error.log"
+  ai: "visionops_ai.log"
+  access: "visionops_access.log"
+  analytics: "visionops_analytics.log"
+  worker: "visionops_worker.log"
+  debug: "visionops_debug.log"
+
+# ---------------------------------------------------------------------------
+# Retention Policy
+# ---------------------------------------------------------------------------
+retention:
+  # Maximum age in days before rotating out old logs
+  max_age_days: 30
+  # Maximum total size of all log files in bytes before cleanup (500 MB)
+  max_total_size: 524288000
+  # Enable automatic cleanup of old log files
+  auto_cleanup: true
+  # Cleanup interval in seconds (24 hours)
+  cleanup_interval: 86400
+
+# ---------------------------------------------------------------------------
+# Maximum File Sizes
+# ---------------------------------------------------------------------------
+max_file_size:
+  app: 10485760         # 10 MB
+  error: 10485760        # 10 MB
+  ai: 20971520           # 20 MB
+  access: 10485760       # 10 MB
+  analytics: 10485760    # 10 MB
+  worker: 10485760       # 10 MB
+  debug: 52428800        # 50 MB
+
+# ---------------------------------------------------------------------------
+# Backup Counts
+# ---------------------------------------------------------------------------
+backup_count:
+  app: 5
+  error: 10
+  ai: 5
+  access: 5
+  analytics: 5
+  worker: 5
+  debug: 3
