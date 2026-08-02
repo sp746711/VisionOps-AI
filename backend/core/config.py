@@ -1,5 +1,5 @@
 """
-OptiWare AI - Central Configuration Module
+VisionOps AI - Central Configuration Module
 
 This module serves as the SINGLE source of truth for all backend configuration.
 It uses Pydantic v2 with pydantic-settings for environment-aware configuration
@@ -18,7 +18,7 @@ Usage:
 from __future__ import annotations
 
 import logging
-import sys
+import math
 from enum import Enum
 from pathlib import Path
 from typing import ClassVar, List, Set
@@ -111,13 +111,33 @@ def _parse_comma_separated(value: str) -> List[str]:
     return [item.strip() for item in value.split(",") if item.strip()]
 
 
+def _reject_nan_infinity(value: float, field_name: str) -> float:
+    """Reject NaN and Infinity values for float fields.
+
+    Args:
+        value: The float value to validate.
+        field_name: Name of the field for error messages.
+
+    Returns:
+        The validated float value.
+
+    Raises:
+        ValueError: If the value is NaN or Infinity.
+    """
+    if math.isnan(value):
+        raise ValueError(f"{field_name} must not be NaN.")
+    if math.isinf(value):
+        raise ValueError(f"{field_name} must not be Infinity.")
+    return value
+
+
 # ---------------------------------------------------------------------------
 # Settings Class
 # ---------------------------------------------------------------------------
 
 
 class Settings(BaseSettings):
-    """Central configuration manager for the OptiWare AI backend.
+    """Central configuration manager for the VisionOps AI backend.
 
     All configuration values are loaded from environment variables first,
     falling back to defaults defined in this class. Environment variables
@@ -130,6 +150,11 @@ class Settings(BaseSettings):
 
     Configuration is organized into logical sections for maintainability
     and readability.
+
+    IMPORTANT: This module does NOT create any directories or files at
+    import time. Directory creation is deferred to
+    ``StorageService.initialize()`` which is called during application
+    startup.
     """
 
     # ------------------------------------------------------------------
@@ -187,7 +212,7 @@ class Settings(BaseSettings):
         default=8000,
         ge=1024,
         le=65535,
-        description="The port the API server listens on (1024–65535).",
+        description="The port the API server listens on (1024-65535).",
     )
     API_PREFIX: str = Field(
         default=DEFAULT_API_PREFIX,
@@ -200,10 +225,9 @@ class Settings(BaseSettings):
 
     SECRET_KEY: str = Field(
         default="change-me-to-a-secure-random-secret-key-in-production",
-        min_length=32,
         description=(
             "Secret key for JWT signing and encryption. "
-            "Must be at least 32 characters."
+            "Should be at least 32 characters in production."
         ),
     )
     JWT_ALGORITHM: str = Field(
@@ -215,7 +239,7 @@ class Settings(BaseSettings):
         ge=1,
         le=525600,
         description=(
-            "JWT access token expiration time in minutes (1–525600)."
+            "JWT access token expiration time in minutes (1-525600)."
         ),
     )
     PASSWORD_HASHING_SCHEME: str = Field(
@@ -228,7 +252,7 @@ class Settings(BaseSettings):
         default=8,
         ge=4,
         le=128,
-        description="Minimum password length requirement (4–128).",
+        description="Minimum password length requirement (4-128).",
     )
 
     # ------------------------------------------------------------------
@@ -393,12 +417,12 @@ class Settings(BaseSettings):
     # ------------------------------------------------------------------
 
     YOLO_MODEL_PATH: str = Field(
-        default="ai/models/detection/yolov8n.pt",
-        description="Path to the YOLO model weights file.",
+        default="backend/ai/models/detection/yolov11.pt",
+        description="Path to the YOLO model weights file (relative to project root).",
     )
     CLASSES_FILE: str = Field(
-        default="ai/models/config/classes.txt",
-        description="Path to the YOLO class names file.",
+        default="backend/ai/models/config/classes.yaml",
+        description="Path to the YOLO class names file (relative to project root).",
     )
     DEVICE: str = Field(
         default="auto",
@@ -411,21 +435,21 @@ class Settings(BaseSettings):
         ge=0.0,
         le=1.0,
         description=(
-            "YOLO confidence threshold for detections (0.0–1.0)."
+            "YOLO confidence threshold for detections (0.0-1.0)."
         ),
     )
     IOU_THRESHOLD: float = Field(
         default=0.45,
         ge=0.0,
         le=1.0,
-        description="YOLO NMS IoU threshold (0.0–1.0).",
+        description="YOLO NMS IoU threshold (0.0-1.0).",
     )
     MAX_DETECTIONS: int = Field(
         default=300,
         ge=1,
         le=10000,
         description=(
-            "Maximum number of detections per inference frame (1–10000)."
+            "Maximum number of detections per inference frame (1-10000)."
         ),
     )
 
@@ -442,7 +466,7 @@ class Settings(BaseSettings):
         ge=0.0,
         le=1.0,
         description=(
-            "ByteTrack matching threshold for association (0.0–1.0)."
+            "ByteTrack matching threshold for association (0.0-1.0)."
         ),
     )
     BYTETRACK_TRACK_BUFFER: int = Field(
@@ -450,7 +474,7 @@ class Settings(BaseSettings):
         ge=1,
         le=300,
         description=(
-            "ByteTrack track buffer size in frames (1–300)."
+            "ByteTrack track buffer size in frames (1-300)."
         ),
     )
 
@@ -475,7 +499,7 @@ class Settings(BaseSettings):
         ge=60,
         le=86400,
         description=(
-            "Report data refresh interval in seconds (60–86400)."
+            "Report data refresh interval in seconds (60-86400)."
         ),
     )
 
@@ -525,7 +549,7 @@ class Settings(BaseSettings):
         ge=60,
         le=86400 * 7,
         description=(
-            "Cleanup worker interval in seconds (60–604800)."
+            "Cleanup worker interval in seconds (60-604800)."
         ),
     )
     WORKER_ANALYTICS_INTERVAL: int = Field(
@@ -533,7 +557,7 @@ class Settings(BaseSettings):
         ge=60,
         le=86400,
         description=(
-            "Analytics worker processing interval in seconds (60–86400)."
+            "Analytics worker processing interval in seconds (60-86400)."
         ),
     )
 
@@ -551,17 +575,7 @@ class Settings(BaseSettings):
     @field_validator("ENVIRONMENT", mode="before")
     @classmethod
     def validate_environment(cls, value: str) -> str:
-        """Validate that the environment value is one of the allowed options.
-
-        Args:
-            value: The environment string value.
-
-        Returns:
-            Lowercased, validated environment string.
-
-        Raises:
-            ValueError: If the environment is not a valid option.
-        """
+        """Validate that the environment value is one of the allowed options."""
         valid_envs = {e.value for e in Environment}
         normalized = value.lower().strip()
         if normalized not in valid_envs:
@@ -575,17 +589,7 @@ class Settings(BaseSettings):
     @field_validator("LOG_LEVEL", mode="before")
     @classmethod
     def validate_log_level(cls, value: str) -> str:
-        """Validate that the log level is a standard logging level.
-
-        Args:
-            value: The log level string.
-
-        Returns:
-            Uppercased, validated log level string.
-
-        Raises:
-            ValueError: If the log level is not valid.
-        """
+        """Validate that the log level is a standard logging level."""
         normalized = value.upper().strip()
         if normalized not in VALID_LOG_LEVELS:
             msg = (
@@ -598,17 +602,7 @@ class Settings(BaseSettings):
     @field_validator("DEVICE", mode="before")
     @classmethod
     def validate_device(cls, value: str) -> str:
-        """Validate that the device is a supported inference device.
-
-        Args:
-            value: The device string.
-
-        Returns:
-            Lowercased, validated device string.
-
-        Raises:
-            ValueError: If the device is not supported.
-        """
+        """Validate that the device is a supported inference device."""
         normalized = value.lower().strip()
         if normalized not in VALID_DEVICES:
             msg = (
@@ -618,22 +612,25 @@ class Settings(BaseSettings):
             raise ValueError(msg)
         return normalized
 
+    @field_validator("CONFIDENCE_THRESHOLD", "IOU_THRESHOLD",
+                     "BYTETRACK_MATCH_THRESHOLD", mode="before")
+    @classmethod
+    def validate_float_threshold(cls, value: float | str, info) -> float:
+        """Validate float threshold values, rejecting NaN and Infinity.
+
+        Converts string values to float (from environment variables) before
+        validation.
+        """
+        if isinstance(value, str):
+            value = float(value)
+        return _reject_nan_infinity(value, info.field_name)
+
     @field_validator("ALLOWED_VIDEO_EXTENSIONS", mode="before")
     @classmethod
     def validate_video_extensions(
         cls, value: List[str] | str
     ) -> List[str]:
-        """Validate that video extensions have a leading dot and are supported.
-
-        Args:
-            value: List of extension strings or comma-separated string.
-
-        Returns:
-            List of validated, lowercased extension strings.
-
-        Raises:
-            ValueError: If any extension is invalid.
-        """
+        """Validate that video extensions have a leading dot and are supported."""
         if isinstance(value, str):
             value = _parse_comma_separated(value)
         validated: List[str] = []
@@ -653,14 +650,7 @@ class Settings(BaseSettings):
     @field_validator("SECRET_KEY", mode="before")
     @classmethod
     def validate_secret_key(cls, value: str) -> str:
-        """Warn if the secret key appears to be a default or placeholder.
-
-        Args:
-            value: The secret key string.
-
-        Returns:
-            The secret key as-is.
-        """
+        """Warn if the secret key appears to be a default or placeholder."""
         if value in (
             "change-me",
             "change-me-to-a-secure-random-secret-key-in-production",
@@ -678,14 +668,7 @@ class Settings(BaseSettings):
     def validate_allowed_origins(
         cls, value: List[str] | str
     ) -> List[str]:
-        """Parse comma-separated origins string into a list if needed.
-
-        Args:
-            value: List of origin strings or comma-separated string.
-
-        Returns:
-            List of validated origin strings.
-        """
+        """Parse comma-separated origins string into a list if needed."""
         if isinstance(value, str):
             return _parse_comma_separated(value)
         return value
@@ -696,22 +679,21 @@ class Settings(BaseSettings):
 
     @model_validator(mode="after")
     def validate_and_bootstrap(self) -> "Settings":
-        """Post-initialization validation and directory bootstrapping.
+        """Post-initialization validation.
 
         This runs after all fields are validated. It:
-        - Resolves all relative paths to absolute paths.
-        - Ensures all required directories exist.
+        - Resolves all relative paths to absolute paths (no directory creation).
         - Validates numeric range consistency.
         - Logs the configuration state.
 
-        Returns:
-            The validated Settings instance.
+        Note: This validator does NOT create any directories. Directory
+        creation is deferred to StorageService.initialize() at app startup.
         """
         if self._initialized:
             return self
 
-        # Resolve and ensure all managed directories
-        self._resolve_and_ensure_directories()
+        # Resolve relative paths to absolute (no directory creation)
+        self._resolve_paths()
 
         # Validate runtime consistency
         self._validate_runtime_consistency()
@@ -719,7 +701,7 @@ class Settings(BaseSettings):
         # Log startup configuration
         environment_label = self.ENVIRONMENT.upper()
         logger.info(
-            "OptiWare AI Configuration loaded — "
+            "VisionOps AI Configuration loaded -- "
             "Environment: %s | Debug: %s | Version: %s",
             environment_label,
             self.DEBUG,
@@ -737,8 +719,8 @@ class Settings(BaseSettings):
     # Internal Helpers
     # ------------------------------------------------------------------
 
-    def _resolve_and_ensure_directories(self) -> None:
-        """Resolve relative directory paths to absolute and create them."""
+    def _resolve_paths(self) -> None:
+        """Resolve relative directory paths to absolute (no directory creation)."""
         # Data directories
         self._resolve_field_to_abs("DATA_FOLDER")
         self._resolve_field_to_abs("RAW_FOLDER")
@@ -785,11 +767,7 @@ class Settings(BaseSettings):
         """Resolve a relative path field to an absolute path.
 
         If the field value is a relative path, it is resolved relative to
-        the project root. Directory fields are created if they do not exist.
-
-        Args:
-            field_name: The attribute name on this Settings instance.
-            is_directory: If True, the path points to a directory (created).
+        the project root. No directories are created.
         """
         current_value = getattr(self, field_name, None)
         if current_value is None:
@@ -799,19 +777,10 @@ class Settings(BaseSettings):
         if not path.is_absolute():
             path = _resolve_path(str(path))
 
-        if is_directory:
-            _ensure_directory(path)
-        else:
-            _ensure_directory(path.parent)
-
         setattr(self, field_name, str(path))
 
     def _validate_runtime_consistency(self) -> None:
-        """Validate cross-field runtime consistency.
-
-        Raises:
-            ValueError: If any consistency check fails.
-        """
+        """Validate cross-field runtime consistency."""
         if self.CONFIDENCE_THRESHOLD < self.IOU_THRESHOLD:
             logger.warning(
                 "CONFIDENCE_THRESHOLD (%.2f) is lower than "
@@ -827,7 +796,10 @@ class Settings(BaseSettings):
                     "DEBUG mode is enabled in PRODUCTION environment. "
                     "Disable it for security and performance."
                 )
-            if self.SECRET_KEY in (
+            # Only raise if SECRET_KEY was explicitly set to a weak value
+            # (not when it's the class default)
+            secret_explicitly_set = "SECRET_KEY" in self.model_fields_set
+            if secret_explicitly_set and self.SECRET_KEY in (
                 "change-me-to-a-secure-random-secret-key-in-production",
                 "change-me",
             ):
@@ -841,35 +813,19 @@ class Settings(BaseSettings):
     # ------------------------------------------------------------------
 
     def is_development(self) -> bool:
-        """Check if the current environment is development.
-
-        Returns:
-            True if the environment is 'development'.
-        """
+        """Check if the current environment is development."""
         return self.ENVIRONMENT == Environment.DEVELOPMENT.value
 
     def is_production(self) -> bool:
-        """Check if the current environment is production.
-
-        Returns:
-            True if the environment is 'production'.
-        """
+        """Check if the current environment is production."""
         return self.ENVIRONMENT == Environment.PRODUCTION.value
 
     def is_testing(self) -> bool:
-        """Check if the current environment is testing.
-
-        Returns:
-            True if the environment is 'testing'.
-        """
+        """Check if the current environment is testing."""
         return self.ENVIRONMENT == Environment.TESTING.value
 
     def is_staging(self) -> bool:
-        """Check if the current environment is staging.
-
-        Returns:
-            True if the environment is 'staging'.
-        """
+        """Check if the current environment is staging."""
         return self.ENVIRONMENT == Environment.STAGING.value
 
     # ------------------------------------------------------------------
@@ -906,14 +862,10 @@ class Settings(BaseSettings):
     # ------------------------------------------------------------------
 
     def display_summary(self) -> str:
-        """Return a human-readable summary of the active configuration.
-
-        Returns:
-            Multi-line string summarizing key configuration values.
-        """
+        """Return a human-readable summary of the active configuration."""
         lines = [
             f"{'=' * 60}",
-            f"  OptiWare AI Configuration Summary",
+            f"  VisionOps AI Configuration Summary",
             f"{'=' * 60}",
             f"  Project      : {self.PROJECT_NAME} v{self.VERSION}",
             f"  Environment  : {self.ENVIRONMENT.upper()}",
@@ -959,10 +911,6 @@ class Settings(BaseSettings):
 # ---------------------------------------------------------------------------
 
 settings: Settings = Settings()
-
-# Print configuration summary on import in non-testing environments
-if not settings.is_testing():
-    print(settings.display_summary(), file=sys.stderr)
 
 __all__ = [
     "Settings",

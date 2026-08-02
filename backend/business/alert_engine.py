@@ -179,6 +179,10 @@ class AlertEngine:
     def _load_detections(self, video_id: str) -> list[dict[str, Any]]:
         """Load detection records scoped to a video.
 
+        Records without a ``video_id`` (or with an empty one) are
+        treated as applicable to any video so that data-mock contracts
+        and global records remain usable.
+
         Args:
             video_id: Video ID filter.
 
@@ -196,11 +200,18 @@ class AlertEngine:
             )
             return []
         return [
-            r for r in records if r.get("video_id") == video_id
+            r
+            for r in records
+            if isinstance(r, dict)
+            and r.get("video_id") in (None, "", video_id)
         ]
 
     def _load_events(self, video_id: str) -> list[dict[str, Any]]:
         """Load event records scoped to a video.
+
+        Records without a ``video_id`` (or with an empty one) are
+        treated as applicable to any video so that data-mock contracts
+        and global records remain usable.
 
         Args:
             video_id: Video ID filter.
@@ -219,7 +230,10 @@ class AlertEngine:
             )
             return []
         return [
-            r for r in records if r.get("video_id") == video_id
+            r
+            for r in records
+            if isinstance(r, dict)
+            and r.get("video_id") in (None, "", video_id)
         ]
 
     def _suppressed(
@@ -236,11 +250,10 @@ class AlertEngine:
         Returns:
             ``True`` when the alert should be suppressed.
         """
-        if self._min_interval_seconds is None:
-            return key in seen
-        # With a configured suppression window, deduplicate identical
-        # logical conditions within the same pass.
-        return key in seen
+        if key in seen:
+            return True
+        seen.add(key)
+        return False
 
     @staticmethod
     def _make_alert(

@@ -1,0 +1,14 @@
+2026-08-02 22:36:46 | INFO     | visionops.core.logging | Logging initialised (config=D:\projects\VisionOps-AI\backend\config\logging.yaml, level=INFO).
+2026-08-02 22:36:59 | INFO     | visionops.core.logging | Logging initialised (config=C:\nonexistent\logging.yaml, level=INFO).
+2026-08-02 23:10:06 | INFO     | visionops.core.logging | Logging initialised (config=D:\projects\VisionOps-AI\backend\config\logging.yaml, level=INFO).
+2026-08-02 23:10:07 | INFO     | httpx | HTTP Request: GET http://testserver/ "HTTP/1.1 200 OK"
+2026-08-02 23:10:07 | INFO     | httpx | HTTP Request: GET http://testserver/ "HTTP/1.1 200 OK"
+2026-08-02 23:10:07 | INFO     | httpx | HTTP Request: GET http://testserver/health "HTTP/1.1 200 OK"
+2026-08-02 23:10:07 | INFO     | httpx | HTTP Request: GET http://testserver/health "HTTP/1.1 200 OK"
+2026-08-02 23:10:07 | INFO     | httpx | HTTP Request: GET http://testserver/nonexistent/route/12345 "HTTP/1.1 404 Not Found"
+2026-08-02 23:10:07 | INFO     | httpx | HTTP Request: POST http://testserver/health "HTTP/1.1 405 Method Not Allowed"
+2026-08-02 23:10:07 | INFO     | httpx | HTTP Request: GET http://testserver/?foo=bar "HTTP/1.1 200 OK"
+2026-08-02 23:10:07 | INFO     | httpx | HTTP Request: GET http://testserver/openapi.json "HTTP/1.1 200 OK"
+2026-08-02 23:10:07 | INFO     | httpx | HTTP Request: GET http://testserver/docs "HTTP/1.1 200 OK"
+2026-08-02 23:10:07 | INFO     | httpx | HTTP Request: OPTIONS http://testserver/ "HTTP/1.1 200 OK"
+2026-08-02 23:10:07 | INFO     | httpx | HTTP Request: GET http://testserver/ "HTTP/1.1 200 OK"
